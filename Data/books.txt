@@ -1,0 +1,2 @@
+1-BookName:Millman's Integrated Electronics , Authors:Jacob Millman,Christos Halkias , Publisher:B , Subjects:circuits , PublishedYear:2017 , PageNo:450
+2-BookName:Digital Electronic , Authors:Hearn , Publisher:B , Subjects:CAD , PublishedYear:2012 , PageNo:1070
