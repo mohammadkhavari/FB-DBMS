@@ -1,5 +1,5 @@
-add book ISBN:36 , BookName:Millman's Integrated Electronics , Authors:Jacob Millman,Christos Halkias , Publisher:B , Subjects:circuits , PublishedYear:2017 , PageNo:450
+add book ISBN:36435983243949591024 , BookName:Millman's Integrated Electronics , Authors:Jacob Millman,Christos Halkias , Publisher:B , Subjects:circuits , PublishedYear:2017 , PageNo:450
 
-add book ISBN:36 , BookName:Digital Electronic , Authors:Hearn , Publisher:B , Subjects:CAD , PublishedYear:2012 , PageNo:1070
+add book ISBN:23965432876546543232 , BookName:Digital Electronic , Authors:Hearn , Publisher:B , Subjects:CAD , PublishedYear:2012 , PageNo:1070
 
 find book 450 by PageNo
