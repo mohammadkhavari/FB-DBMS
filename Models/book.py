@@ -1,12 +1,12 @@
 class Book():
     __attributes_options = {
-        "ISBN": {"exact": 20, "unique": True, "indexed": True, "index_file": "BookISBNIndex.txt"},
-        "BookName": {"lowerbound": 1, "upperbound": 200, "indexed": True, "index_file": "BookTitleIndex.txt"},
-        "Authors": {"upperbound": 200, "indexed": True, "index_file": "BookAuthorsIndex.txt"},
-        "Publisher": {"upperbound": 200, "indexed": False},
-        "Subjects": {"upperbound": 100, "indexed": False, },
-        "PublishedYear": {"exact": 4, "indexed": False, },
-        "PageNo": {"upperbound": 4, "indexed": False, },
+        "ISBN": {"exact": 20, "unique": True, "indexed": True, "index_file": "Data/BookISBNIndex.txt", "required": True},
+        "BookName": {"lowerbound": 1, "upperbound": 200, "indexed": True, "index_file": "Data/BookTitleIndex.txt", "required": True},
+        "Authors": {"upperbound": 200, "indexed": True, "index_file": "Data/BookAuthorsIndex.txt", "required": True},
+        "Publisher": {"upperbound": 200, "indexed": False, "required": True},
+        "Subjects": {"upperbound": 100, "indexed": False, "required": True},
+        "PublishedYear": {"exact": 4, "indexed": False, "required": True},
+        "PageNo": {"upperbound": 4, "indexed": False, "required": True},
     }
 
     def __init__(self, data, _id=None):
@@ -14,34 +14,60 @@ class Book():
             self.__dict__[key] = val
         self._id = _id
 
-    def save(self):
-        new_record = (self._id == None)
-        validation_status = self.__validate(new_record)
+    def __save(self):
+        validation_status = self.__validate(new_record=True)
         if(validation_status != 'valid'):
             print('Validation Failed: ', validation_status)
             return
+        # New Record (append)
+        record_id = len(open("Data/books.txt").read().splitlines()) + 1
+        self._id = record_id
+        open("Data/books.txt", 'a').write(f'{self._id}-{self}\n')
+        # __save index
+        for attr, rules in Book.__attributes_options.items():
+            if rules['indexed']:
+                self.save_index(attr)
 
-        if new_record:
-            # New Record (append)
-            with open("Data/books.txt", "a+") as file:
-                file.seek(0)
-                record_id = len(file.readlines()) + 1
-                file.write(f'{record_id}-{self}\n')
-
-        else:
-            # Existing Record (overwrite)
+    def __update(self, attr, val):
+        prev_val = self.__dict__[attr]
+        self.__dict__[attr] = val
+        validation_status = self.__validate(new_record=False)
+        if(validation_status != 'valid'):
+            print('Validation Failed: ', validation_status)
+            return
+        # Existing Record (overwrite)
+        try:
             lines = open('Data/books.txt').read().splitlines()
             lines[self._id - 1] = f'{self._id}-{self}'
-            open('Data/books.txt', 'w').write('\n'.join(lines))
+            open('Data/books.txt', 'w').write('\n'.join(lines)+'\n')
+        except Exception as err:
+            print('An error occured in saving:', err)
 
-    def remove(self):
-        pass
+        if Book.__attributes_options[attr]["indexed"]:
+            index_file = Book.__attributes_options[attr]["index_file"]
+            # __save current index
+            for index in val.split(','):
+                print('saving current index')
+            # remove previous index
+            for index in prev_val.split(','):
+                print('removing previous index')
 
-    def __save_indexes(self):
-        pass
+    def __remove(self):
+        try:
+            lines = open('Data/books.txt').read().splitlines()
+            lines[self._id - 1] = f'{self._id}-removed'
+            open('Data/books.txt', 'w').write('\n'.join(lines)+'\n')
+            # removing indexes
+            for attr, rules in Book.__attributes_options.items():
+                if rules['indexed']:
+                    self.__remove_index(attr)
+        except Exception as err:
+            print('An error occured in saving:', err)
 
     def __validate(self, new_record):
         for attr, rules in Book.__attributes_options.items():
+            if 'required' in rules.keys() and attr not in self.__dict__.keys():
+                return f'book should have {attr.lower()}'
             if 'exact' in rules.keys() and len(self.__dict__[attr]) != rules["exact"]:
                 return f'{attr.lower()} should containt exactly {rules["exact"]} characters'
             if 'upperbound' in rules.keys() and len(self.__dict__[attr]) > rules['upperbound']:
@@ -52,11 +78,8 @@ class Book():
                 return f'a book with this {attr.lower()} already exists'
         return 'valid'
 
-    def update_data(self, new_data):
-        for key, val in new_data.items():
-            self.__dict__[key] = val
-
     # return a represntable string form for instance
+
     def __str__(self):
         return f'ISBN:{self.ISBN} , BookName:{self.BookName} , Authors:{self.Authors} , Publisher:{self.Publisher} , Subjects:{self.Subjects} , PublishedYear:{self.PublishedYear} , PageNo:{self.PageNo}'
 
@@ -85,12 +108,17 @@ class Book():
     def add(cls, book_attrs):
         book_attrs = cls.parse_attributes(book_attrs)
         new_book = cls(data=book_attrs)
-        new_book.save()
+        new_book.__save()
 
     # remove book
     @classmethod
     def remove(cls, isbn):
-        pass
+        result = cls.search_handler('ISBN', isbn)
+        if not result:
+            print('nothing found')
+            return
+        book = result[0]
+        book.__remove()
 
     # updates a book
     @classmethod
@@ -102,8 +130,7 @@ class Book():
             print("nothing found")
             return
         book = result[0]
-        book.update_data({attr: val})
-        book.save()
+        book.__update(attr, val)
 
     # returns a book object or null
     @classmethod
@@ -131,6 +158,8 @@ class Book():
         results = []
         with open("Data/books.txt", "r") as file:
             for num, line in enumerate(file, start=1):
+                if line.split('-')[1] == 'removed\n':
+                    continue
                 attrs_str = '-'.join(line[:-1].split('-')[1:])
                 attrs = cls.parse_attributes(attrs_str)
                 if val in attrs[attr]:
@@ -141,4 +170,75 @@ class Book():
     @classmethod
     def indexed_search(cls, attr, val):
         index_file = cls.__attributes_options[attr]["index_file"]
-        return []
+        lines = open(index_file).read().splitlines()    
+        result = cls.binary_search(lines, val)
+        results = []
+        if result['exist']:
+            vals = lines[result['line']].split(':')[1].split('-')
+            vals = [int(val) for val in vals]
+            lines = open('Data/books.txt').read().splitlines()
+            for val in vals:
+                attrs_str = '-'.join(lines[val - 1].split('-')[1:])
+                attrs = cls.parse_attributes(attrs_str)
+                results.append(cls(data=attrs, _id=val))
+        return results
+
+    def save_index(self, attr):
+        val = self.__dict__[attr]
+        vals = val.split(',')
+        index_file = Book.__attributes_options[attr]["index_file"]
+        lines = open(index_file).read().splitlines()
+        for val in vals:       
+            result = Book.binary_search(lines, val)
+            if result['exist']:
+                ids = lines[result['line']].split(':')[1].split('-')
+                ids.append(self._id)
+                lines[result['line']] = lines[result['line']].split(':')[0] + ':' + '-'.join(vals)
+            else:
+                new_line = f'{val}:{self._id}'
+                lines = lines[0:result['line']] + [new_line] + lines[result['line']:]
+        open(index_file, 'w').write('\n'.join(lines)+'\n')
+
+
+    def __remove_index(self, attr):
+        val = self.__dict__[attr]
+        vals = val.split(',')
+        index_file = Book.__attributes_options[attr]["index_file"]
+        lines = open(index_file).read().splitlines()
+        for val in vals:
+            result = Book.binary_search(lines, val)
+            if result['exist']:
+                ids = lines[result['line']].split(':')[1].split('-')
+                ids.remove(self._id)
+                if not ids:
+                    lines.__delitem__[result['line']]           
+                else:
+                    lines[result['line']] = lines[result['line']].split(':')[0] + ':' + '-'.join(ids)
+        if not lines:
+            open(index_file, 'w').write('')
+        else:               
+            open(index_file, 'w').write('\n'.join(lines)+'\n')            
+                            
+    @staticmethod
+    def binary_search(lines, target):
+        lo, hi = 0, len(lines) - 1
+        while lo <= hi:
+            mid = lo + (hi - lo)//2
+            current = lines[mid].split(':')[0]
+            if current == target:
+                return {'line': mid, 'exist': True}
+            elif current < target:
+                lo = mid + 1
+            else:
+                hi = mid - 1
+
+        # if were not returned yet we should return the neerest position
+        lo, hi = 0, len(lines) - 1
+        while lo < hi:
+            mid = (lo + hi) // 2
+            current = lines[mid].split(':')[0]
+            if (current > target):
+                hi = mid
+            else:
+                lo = mid + 1
+        return {'line': lo, 'exist': False}
