@@ -3,7 +3,7 @@ from Models.publisher import Publisher
 
 while(True):
 
-    command = input("\n-->")
+    command = input("\n--> ")
 
     if len(command) == 0:
         continue
