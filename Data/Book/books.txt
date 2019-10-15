@@ -1,0 +1,4 @@
+1-ISBN:36435983243949591024 , BookName:Millman's Integrated Electronics , Authors:Jacob Millman,Christos Halkias , Publisher:B , Subjects:circuits , PublishedYear:2017 , PageNo:4502
+2-removed
+3-ISBN:99999999999999999999 , BookName:Computer Graphics , Authors:Hearn , Publisher:A , Subjects:CAD , PublishedYear:2002 , PageNo:1500
+4-ISBN:88888815062709020982 , BookName:New Book , Authors:Hearn,Jacob Millman , Publisher:A , Subjects:CAD , PublishedYear:2002 , PageNo:1500

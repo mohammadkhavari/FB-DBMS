@@ -1,4 +1,5 @@
 from Models.book import Book
+from Models.publisher import Publisher
 
 while(True):
 
@@ -18,5 +19,7 @@ while(True):
 
     if model == 'book':
         Book.query(query_type, body)
+    elif model == 'publisher':
+        Publisher.query(query_type, body)
     else:
         print('Invalid Command')

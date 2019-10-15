@@ -4,4 +4,27 @@ add book ISBN:23965432876546543232 , BookName:Digital Electronic , Authors:Hearn
 
 add book ISBN:10130415062709020102 , BookName:Computer Graphics , Authors:Hearn , Publisher:A , Subjects:CAD , PublishedYear:2002 , PageNo:1500
 
-find book 450 by PageNo
+add book ISBN:88888815062709020982 , BookName:New Book , Authors:Hearn,Jacob Millman , Publisher:A , Subjects:CAD , PublishedYear:2002 , PageNo:1500
+
+
+update book 23965432876546543232 set Authors to WZ-top
+
+update book 10130415062709020102 set ISBN to 99999999999999999999
+
+remove book 23965432876546543232
+
+find book Jacob Millman by Authors
+
+add publisher PubId:425234 , PubName:Elmosanaat , SubjectsInterest:Science,Electronics,Human , HeadName:Mamad , PubAddress:Tehran/Resalat
+
+add publisher PubId:943320 , PubName:AUT , SubjectsInterest:Science,Tech,AI,ML , HeadName:Ali Asghar , PubAddress:Ahvaz/Resalat/
+
+find publisher Ali by HeadName
+
+find publisher AI by SubjectsInterest
+
+remove publisher 425234
+
+find book 4502 by PageNo
+
+
