@@ -1,2 +1,4 @@
-1-removed
-2-PubId:943320 , PubName:AUT , SubjectsInterest:Science,Tech,AI,ML , HeadName:Ali Asghar , PubAddress:Ahvaz/Resalat/
+1-PubId:943320 , PubName:AUT , SubjectsInterest:Science,Tech,AI,ML , HeadName:Ali Asghar , PubAddress:Ahvaz/Resalat/
+2-removed
+3-PubId:425234 , PubName:Elmosanaat , SubjectsInterest:Science,Electronics,Human , HeadName:Mamad , PubAddress:Tehran/Resalat
+4-PubId:783320 , PubName:B , SubjectsInterest:Human,Religon,Music,Theology , HeadName:Leonard Cohen , PubAddress:HaftHoz/Chamane gharbi/pelake10

@@ -8,6 +8,15 @@ while(True):
     if len(command) == 0:
         continue
 
+    if command == 'reset':
+        Book.reset()
+        Publisher.reset()
+        continue
+
+    if command == 'show all':
+        Book.print_all()
+        continue
+
     command_parsed = command.split()
     if len(command_parsed) < 3:
         print('Invalid Command')
