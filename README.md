@@ -42,13 +42,11 @@ class Publisher(Model):
         "PubAddress": {"upperbound": 200, "indexed": False, "required": True},
         }
         .
-        .
-        .
 
 ```
 >Code shows the publisher model configuration
 
-* It's Possible to override Model functions, for example validate of Book is override and Its Check the publisher registration.
+* It's Possible to override Base Model functions, for example Book validation is overriden and Its Check the publisher registration.
 ```python
 def validate(self, to_update):
         if not to_update:    
