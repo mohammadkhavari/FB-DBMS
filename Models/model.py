@@ -10,7 +10,7 @@ class Model():
         self._id = _id
 
     def __save(self):
-        validation_status = self.__validate(new_record=True)
+        validation_status = self.validate(to_update=False)
         if(validation_status != 'valid'):
             print('Validation Failed: ', validation_status)
             return
@@ -26,7 +26,7 @@ class Model():
     def __update(self, attr, val):
         prev_val = self.__dict__[attr]
         self.__dict__[attr] = val
-        validation_status = self.__validate(new_record=False)
+        validation_status = self.validate(to_update=True)
         if(validation_status != 'valid'):
             print('Validation Failed: ', validation_status)
             return
@@ -56,7 +56,7 @@ class Model():
         except Exception as err:
             print('An error occured in saving:', err)
 
-    def __validate(self, new_record):
+    def validate(self, to_update):
         for attr, rules in self.__class__.attributes_options.items():
             if 'required' in rules.keys() and rules['required'] and attr not in self.__dict__.keys():
                 return f'{self.__class__.__name__} should have {attr.lower()}'
@@ -68,7 +68,7 @@ class Model():
                 return f'{attr.lower()} should containt at most {rules["upperbound"]} characters'
             if 'lowerbound' in rules.keys() and len(self.__dict__[attr]) < rules["lowerbound"]:
                 return f'{attr.lower()} should containt at least {rules["lowerbound"]} characters'
-            if new_record and 'unique' in rules.keys() and rules['unique'] and self.__class__.search_handler(attr, self.__dict__[attr]):
+            if not to_update and 'unique' in rules.keys() and rules['unique'] and self.__class__.search_handler(attr, self.__dict__[attr]):
                 return f'a {self.__class__.__name__} with this {attr.lower()} already exists'
         return 'valid'
 
@@ -86,6 +86,8 @@ class Model():
             cls.add(body)
         elif query_type == 'find':
             cls.find(body)
+        elif query_type == 'partial_find':
+            cls.find(body, exact = False)
         elif query_type == 'update':
             cls.update(body)
         elif query_type == 'remove':
@@ -124,9 +126,12 @@ class Model():
 
     # returns a model object or null
     @classmethod
-    def find(cls, body):
+    def find(cls, body, exact = True):
         val, attr = body.split(' by ')
-        results = cls.search_handler(attr, val)
+        if not exact:
+            results = cls.non_indexed_search(attr, val, exact=False)
+        else:
+            results = cls.search_handler(attr, val)
         if len(results) == 0:
             print('Nothing Found!')
         else:
@@ -144,7 +149,7 @@ class Model():
 
     # find by any attributes WITHOUT INDEXING
     @classmethod
-    def non_indexed_search(cls, attr, val):
+    def non_indexed_search(cls, attr, val, exact = True):
         results = []
         with open(cls.data_file, "r") as file:
             for num, line in enumerate(file, start=1):
@@ -152,8 +157,12 @@ class Model():
                     continue
                 attrs_str = '-'.join(line[:-1].split('-')[1:])
                 attrs = cls.parse_attributes(attrs_str)
-                if val in attrs[attr]:
-                    results.append(cls(data=attrs, _id=num))
+                if exact:
+                    if val == attrs[attr]:
+                        results.append(cls(data=attrs, _id=num))
+                else:
+                    if val in attrs[attr]:
+                        results.append(cls(data=attrs, _id=num))
         return results
 
      # using indexes
@@ -211,7 +220,17 @@ class Model():
             open(index_file, 'w').write('')
         else:               
             open(index_file, 'w').write('\n'.join(lines)+'\n')            
-                            
+    
+    @classmethod
+    def reset(cls):
+        files = [cls.data_file]
+        for attr, rules in cls.attributes_options.items():
+            if rules['indexed']:
+                files.append(rules['index_file'])
+        for file in files:
+            open(file, 'w').write('')
+
+
     @staticmethod
     def binary_search(lines, target):
         lo, hi = 0, len(lines) - 1
